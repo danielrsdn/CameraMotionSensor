@@ -1,5 +1,27 @@
 # CameraMotionSensor 
-This repository is used to build a UF2 file that runs on a Raspberry Pi Pico to operate the photo-capturing motion sensor device.  demonstrates how to use C or python language to drive the SPI Camera mini camera on the Pcio platform. 
+This repository is used to build an executable file that runs on a Raspberry Pi Pico to operate the photo-capturing motion sensor device. 
+
+# Device Setup
+## Materials needed
+- Raspberry Pi Pico
+- Arducam Mini 2MP Plus
+- Elegoo HC-SR04 Ultrasonic Module Distance Sensor
+- Bread board 
+- Jumperwires 
+- Breadboard
+- USB
+## Configuration
+
+# Build executable file
+```bash
+cd  PICO_SPI_CAM/C
+mkdir build
+cd build
+cmake ..
+make 
+```
+
+demonstrates how to use C or python language to drive the SPI Camera mini camera on the Pcio platform. 
 This demonstration is made for ArduCAM_Mini_2MP/5MP, and it needs to be used in conjunction with PC software.
 
 # Download driver
