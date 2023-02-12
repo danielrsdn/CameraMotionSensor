@@ -26,7 +26,13 @@ sudo apt install cmake gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-n
 git clone https://github.com/raspberrypi/pico-sdk.git
 ```
 
-3. Set PICO_SDK_PATH to this sdk
+3. Initialize tinyUsb submodule
+```bash
+cd pico-sdk
+git submodule update --init
+```
+
+4. Set PICO_SDK_PATH to this sdk
 ```bash
 export PICO_SDK_PATH=$PWD/pico-sdk
 ```
