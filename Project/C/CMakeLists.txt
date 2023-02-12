@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 add_subdirectory(ArduCAM)
 # Compile choose demo 
-add_subdirectory(Examples/MyWork)
+add_subdirectory(src/Main)
 #add_subdirectory(Examples/Arducam_MINI_2MP_Plus_Videostreaing)
 #add_subdirectory(Examples/ArduCAM_Mini_2MP_Plus_4CAM_VideoStreaming)
 #add_subdirectory(Examples/Arducam_MINI_5MP_Plus_Videostreaing)
