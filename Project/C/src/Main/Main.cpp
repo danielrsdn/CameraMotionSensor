@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include "stdio.h"
 // #include "bsp/board.h"
-#include "tusb.h"
+//#include "tusb.h"
 #include "pico/mutex.h"
 
 
@@ -61,7 +61,7 @@ int main()
   uint8_t vid, pid;
   uint8_t cameraCommand;
   stdio_init_all();
-  tusb_init();
+ // tusb_init();
 	// put your setup code here, to run once:
   myCAM.Arducam_init();	
   gpio_init(CS);
