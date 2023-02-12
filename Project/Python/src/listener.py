@@ -108,7 +108,7 @@ def flash():
      if sp.returncode != 0:
           print("Error")
           
-     if not os.access(UF2_FILE_PATH, os.X_OK):
+     if not os.access(UF2_FILE_PATH, os.R_OK):
           print("UF2 File does not exist")
     
      subprocess.run([CP_CMD, UF2_FILE_PATH, MNT_DIR])
