@@ -11,7 +11,6 @@ target_link_libraries(Main
 	hardware_dma
 	hardware_i2c
 	hardware_pwm
-	bsp
 	ArduCAM
 )
 pico_enable_stdio_usb(Main 1)
