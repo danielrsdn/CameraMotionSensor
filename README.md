@@ -33,7 +33,7 @@ export PICO_SDK_PATH=$PWD/pico-sdk
 ## Compile and build executable
 
 ```bash
-cd  PICO_SPI_CAM/C
+cd  Project/C
 mkdir build
 cd build
 cmake ..
@@ -53,7 +53,7 @@ If you can see files in /mnt/pico then the USB Mass Storage Device has been moun
 ```
 $ ls /mnt/pico/
 INDEX.HTM INFO_UF2.TXT
-Copy your arducam_demo.uf2 onto RP2040:
-sudo cp arducam_demo.uf2 /mnt/pico
+Copy your Main.uf2 onto RP2040:
+sudo cp Main.uf2 /mnt/pico
 sudo sync
 ```
