@@ -36,7 +36,7 @@ def listen():
     while device_COM is None:
         cp = subprocess.run([LIST_CMD + " -a " + USB_DEVICE], shell=True, stdout=subprocess.PIPE)
         if cp.returncode == 0:
-            device_COM = cp.stdout.decode("utf-8")
+            device_COM = cp.stdout.decode("utf-8").split("\n")[0]
         else:
             print("Still waiting to detect usb device")
             time.sleep(1)
