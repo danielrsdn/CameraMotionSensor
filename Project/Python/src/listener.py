@@ -33,10 +33,11 @@ def kill(s):
 def listen():
     comports = adafruit_board_toolkit.circuitpython_serial.data_comports()
     device_COM = subprocess.run([LIST_CMD + " -a " + USB_DEVICE], shell=True, stdout=subprocess.PIPE).stdout.decode("utf-8").split("\n")[0]
+    print("detected device_COM: " + device_COM)
     lastTimeNoRead = None
     s3 = boto3.resource('s3')
-    if not comports:
-        kill("No comports module found")
+    #if not comports:
+        #kill("No comports module found")
 
     device = serial.Serial(device_COM, baudrate=115200)
     buffer = bytes()  
