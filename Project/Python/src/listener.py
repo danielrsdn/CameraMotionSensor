@@ -26,13 +26,17 @@ USB_DEVICE = DEV_DIR + "/ttyACM*"
 
 UF2_FILE_PATH = '''./Project/C/build/src/Main/Main.uf2'''
 
+def kill(s):
+    print(f'{sys.argv[0]}: {s}', file=sys.stderr)
+    sys.exit(1)
+
 def listen():
     comports = adafruit_board_toolkit.circuitpython_serial.data_comports()
     device_COM = subprocess.run([LIST_CMD + " -a " + USB_DEVICE], shell=True, stdout=subprocess.PIPE).stdout.decode("utf-8").split("\n")[0]
     lastTimeNoRead = None
     s3 = boto3.resource('s3')
     if not comports:
-        raise Exception("No modules found")
+        kill("No comports module found")
 
     device = serial.Serial(device_COM, baudrate=115200)
     buffer = bytes()  
@@ -98,21 +102,28 @@ def listen():
 
 def flash():
      #Create tmp directory
-     subprocess.run([CREATE_NESTED_DIR_CMD, "-p", MNT_DIR])
+     if subprocess.run([CREATE_NESTED_DIR_CMD, "-p", MNT_DIR]).returncode != 0:
+         kill("Cannot create mounted directory")
+
      disk_file = subprocess.run([GREP_CMD + " -o " + PATTERN_2], stdout=subprocess.PIPE, input=subprocess
                .run([GREP_CMD + " -o " + PATTERN_1], stdout=subprocess.PIPE, input=subprocess
                .run([TAIL_CMD], stdout=subprocess.PIPE, input=subprocess
                     .run([DMESG_CMD], stdout=subprocess.PIPE).stdout).stdout, shell=True).stdout, shell=True).stdout.decode("utf-8").split("\n")[0]
      
-     sp = subprocess.run([MOUNT_CMD, DEV_DIR + "/" + disk_file, MNT_DIR])
-     if sp.returncode != 0:
-          print("Error")
+     if "sd" not in disk_file:
+         kill("Can't find pico disk file")
+    
+     if subprocess.run([MOUNT_CMD, DEV_DIR + "/" + disk_file, MNT_DIR]).returncode != 0:
+         kill("Can't mount disk on temp folder")
           
      if not os.access(UF2_FILE_PATH, os.R_OK):
-          print("UF2 File does not exist")
+         kill("UF2 File does not exist")
     
-     subprocess.run([CP_CMD, UF2_FILE_PATH, MNT_DIR])
-     subprocess.run([SYNC_CMD])
+     if subprocess.run([CP_CMD, UF2_FILE_PATH, MNT_DIR]).returncode != 0:
+         kill("Can't copy uf2 file to pico")
+
+     if subprocess.run([SYNC_CMD]).returncode != 0:
+         kill("Can't flash uf2 file to pico")
 
           
 def main():
