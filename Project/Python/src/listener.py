@@ -32,7 +32,7 @@ def kill(s):
 
 def listen():
     comports = adafruit_board_toolkit.circuitpython_serial.data_comports()
-    deviceCOM = None
+    device_COM = None
     while device_COM is None:
         cp = subprocess.run([LIST_CMD + " -a " + USB_DEVICE], shell=True, stdout=subprocess.PIPE)
         if cp.returncode == 0:
