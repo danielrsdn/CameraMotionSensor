@@ -32,7 +32,15 @@ def kill(s):
 
 def listen():
     comports = adafruit_board_toolkit.circuitpython_serial.data_comports()
-    device_COM = subprocess.run([LIST_CMD + " -a " + USB_DEVICE], shell=True, stdout=subprocess.PIPE).stdout.decode("utf-8").split("\n")[0]
+    deviceCOM = None
+    while device_COM is None:
+        cp = subprocess.run([LIST_CMD + " -a " + USB_DEVICE], shell=True, stdout=subprocess.PIPE)
+        if cp.returncode == 0:
+            device_COM = cp.stdout.decode("utf-8")
+        else:
+            print("Still waiting to detect usb device")
+            time.sleep(1)
+
     print("detected device_COM: " + device_COM)
     lastTimeNoRead = None
     s3 = boto3.resource('s3')
