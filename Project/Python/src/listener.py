@@ -6,6 +6,7 @@ import boto3
 import datetime
 import subprocess
 import os
+import requests
 
 DMESG_CMD = "/usr/bin/dmesg"
 TAIL_CMD = "/usr/bin/tail"
@@ -25,6 +26,10 @@ MNT_DIR = "/mnt/pico"
 USB_DEVICE = DEV_DIR + "/ttyACM*"
 
 UF2_FILE_PATH = '''./Project/C/build/src/Main/Main.uf2'''
+
+Headers = {"session_id", "testkey"}
+upload_url = "https://ljgqi1zvt4.execute-api.us-west-2.amazonaws.com/v1/upload"
+notify_url = "https://ljgqi1zvt4.execute-api.us-west-2.amazonaws.com/v1/notify"
 
 def kill(s):
     print(f'{sys.argv[0]}: {s}', file=sys.stderr)
@@ -81,22 +86,15 @@ def listen():
                     response = response.split(bytes("done", 'utf-8'))[0]
                     buffer = buffer + response
                     print("Got new picture!")
-                    image = open("saved1.jpeg", "wb+")
+                    imageName = "tmp/image_" + datetime.datetime.today().strftime("%d-%b-%Y-%H-%M-%S-%f") +  ".jpeg";
+                    image = open(imageName, "wb+")
                     image.write(buffer)
                     image.close()
-                    image = open("saved1.jpeg", "rb+")
-                    imageName = "image_" + datetime.datetime.today().strftime("%d-%b-%Y-%H-%M-%S-%f") +  ".jpeg";
-                    s3.Bucket('arducambucket').put_object(Key=imageName, Body=image) 
-                    print("Sent image to S3 Bucket!")
-                    print(buffer)
+                    response1 = requests.get(upload_url, headers=headers)
+                    print("Status Code". response1.status_code)
+                    print(response1.json())
                     buffer = bytes()
                     lastTimeNoRead = None
-                    print("Would you like to continue?")
-                    con = input("Continue: ")
-                    if (con == "y"):
-                        break
-                    else:
-                        continue
                 buffer = buffer + response
             elif lastTimeNoRead is None:
                 continue
