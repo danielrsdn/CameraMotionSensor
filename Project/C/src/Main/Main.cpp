@@ -166,9 +166,6 @@ int main()
       // convertCharToUInt8(s.c_str(),s.size(), messageBuff); 
       // SerialUsb(messageBuff, s.size());
       // free(messageBuff);
-      gpio_put(25, 1);
-      sleep_ms(500);
-      gpio_put(25, 0);  
    		SerialUsb(askToTakeImageBuff, 18);
 
       while ((response = SerialUsbRead()) == -1) {}
