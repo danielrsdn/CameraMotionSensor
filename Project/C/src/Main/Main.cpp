@@ -242,8 +242,9 @@ void trigger()
 {
   while(1) {
     gpio_put(TRIGGER_PIN, 1);
-    sleep_us(50);
+    sleep_us(100);
     gpio_put(TRIGGER_PIN, 0);
+    sleep_us(50);
   }
   uint32_t dataSentByCore1 = 0;
   //gpio_put(25,1);
