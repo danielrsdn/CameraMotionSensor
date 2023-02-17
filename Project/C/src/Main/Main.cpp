@@ -37,8 +37,8 @@ uint8_t bmp_header[BMPIMAGEOFFSET] =
 // set pin 10 as the slave select for the digital pot:
 const uint8_t CS = 5;
 bool is_header = false;
-const uint8_t TRIGGER_PIN = 16;
-const uint8_t ECHO_PIN = 15;
+const int TRIGGER_PIN = 16;
+const int ECHO_PIN = 15;
 int mode = 0;
 uint8_t start_capture = 0;
 uint64_t start = 0;
