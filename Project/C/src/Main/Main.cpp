@@ -12,6 +12,7 @@
 #include "bsp/board.h"
 #include "tusb.h"
 #include "pico/mutex.h"
+#include <string.h>
 
 
 static mutex_t usb_mutex;
