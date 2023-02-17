@@ -27,7 +27,7 @@ USB_DEVICE = DEV_DIR + "/ttyACM*"
 
 UF2_FILE_PATH = '''./Project/C/build/src/Main/Main.uf2'''
 
-Headers = {"session_id", "testkey"}
+Headers = {"session_id": "testkey"}
 upload_url = "https://ljgqi1zvt4.execute-api.us-west-2.amazonaws.com/v1/upload"
 notify_url = "https://ljgqi1zvt4.execute-api.us-west-2.amazonaws.com/v1/notify"
 
