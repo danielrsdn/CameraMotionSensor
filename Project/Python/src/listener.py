@@ -90,7 +90,7 @@ def listen():
                     image = open(imageName, "wb+")
                     image.write(buffer)
                     image.close()
-                    response1 = requests.get(upload_url, headers=headers)
+                    response1 = requests.get(upload_url, headers=Headers)
                     print("Status Code". response1.status_code)
                     print(response1.json())
                     buffer = bytes()
