@@ -152,7 +152,7 @@ int main()
 
     elapsedTime = time_us_64() - start;
 
-    inst_distance = ((double) elapsedTime/1000000)*343/2;
+    inst_distance = ((double) elapsedTime/1000)*343/2;
 
     if (distance == 0) {
       distance = inst_distance;
