@@ -157,11 +157,11 @@ int main()
       distance = inst_distance;
     }
 
-    newAverageDistance = distance*0.80 + inst_distance*0.20;
+    newAverageDistance = distance*0.70 + inst_distance*0.30;
     
 	//sleep_ms(100);
 
-    if (((((double) absDifference(newAverageDistance, distance))/distance)*100.0) > 60.0) {
+    if (((((double) absDifference(newAverageDistance, distance))/distance)*100.0) > 50.0) {
     	//printf("Average distance: %f\n", newAverageDistance);
     	//uint8_t * doneBuff = (uint8_t*) malloc(4*sizeof(uint8_t));
 		//const char * done = "Hiii";
