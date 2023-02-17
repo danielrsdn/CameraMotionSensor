@@ -152,6 +152,13 @@ int main()
     elapsedTime = time_us_64() - start;
 
     inst_distance = ((double) elapsedTime/1000000)*343/2;
+    std::string s = std::to_string(inst_distance);
+    uint8_t* messageBuff = (uint8_t*) malloc(7*sizeof(uint8_t));
+    convertCharToUInt8(s.c_str(),s.size(), messageBuff); 
+    SerialUsb(messageBuff, s.size());
+    free(messageBuff);
+    continue;
+
 
     if (distance == 0) {
       distance = inst_distance;
