@@ -165,6 +165,7 @@ int main()
     convertCharToUInt8(s.c_str(),s.size(), messageBuff); 
     SerialUsb(messageBuff, s.size());
     free(messageBuff);
+    distance = newAverageDistance;
     continue;
     
 	//sleep_ms(100);
