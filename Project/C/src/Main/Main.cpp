@@ -169,43 +169,45 @@ int main()
 		//SerialUsb(doneBuff, 4);
 		//free(doneBuff);
 		//sleep_ms(500);
-
-		
+      gpio_put(25, 1);
+      sleep_ms(5000);
+      gpio_put(25, 0);  
+      continue;  
    		SerialUsb(askToTakeImageBuff, 18);
    		
    		while ((response = SerialUsbRead()) == -1) {
    		
    		}
    		
-		// 'q' = quit
- 		if (response == 113)
-		{
+		  // 'q' = quit
+ 		  if (response == 113)
+		  {
 		
-			multicore_fifo_push_blocking(1);
-			break;
+			  multicore_fifo_push_blocking(1);
+			  break;
 			
-		}
+		  }
 		
-		// 'c' = capture
-		else if (response == 99)
-		{
+		  // 'c' = capture
+		  else if (response == 99)
+		  {
 		
-			multicore_fifo_push_blocking(2);
-			captureAndSendImage();
-			multicore_fifo_push_blocking(3);
+			  multicore_fifo_push_blocking(2);
+			  captureAndSendImage();
+			  multicore_fifo_push_blocking(3);
 		
-		}
+		  }
 		
-		// i = ignore
-		else if (response == 105)
-		{
+		  // i = ignore
+		  else if (response == 105)
+		  {
 		
-			// do nothing 
+			  // do nothing 
 		
-		}
+		  }
       	
-      	sleep_ms(5000);
-      	gpio_put(25, 0);    
+      sleep_ms(5000);
+      gpio_put(25, 0);    
     }
 
     distance = newAverageDistance;
