@@ -231,7 +231,11 @@ double absDifference(double newAverageDistance, double distance)
 
 void trigger()
 {
-
+  while(1) {
+    gpio_put(TRIGGER_PIN, 1);
+    sleep_us(100);
+    gpio_put(TRIGGER_PIN, 0);
+  }
   uint32_t dataSentByCore1 = 0;
   //gpio_put(25,1);
   while (1) {
