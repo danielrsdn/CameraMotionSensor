@@ -172,6 +172,7 @@ int main()
       gpio_put(25, 1);
       sleep_ms(5000);
       gpio_put(25, 0);  
+      distance = newAverageDistance;
       continue;  
    		SerialUsb(askToTakeImageBuff, 18);
    		
