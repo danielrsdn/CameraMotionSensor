@@ -86,7 +86,7 @@ def listen():
                     response = response.split(bytes("done", 'utf-8'))[0]
                     buffer = buffer + response
                     print("Got new picture!")
-                    imageName = "tmp/image_" + datetime.datetime.today().strftime("%d-%b-%Y-%H-%M-%S-%f") +  ".jpeg";
+                    imageName = "/tmp/image_" + datetime.datetime.today().strftime("%d-%b-%Y-%H-%M-%S-%f") +  ".jpeg";
                     image = open(imageName, "wb+")
                     image.write(buffer)
                     image.close()
