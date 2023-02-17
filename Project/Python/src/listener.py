@@ -91,7 +91,7 @@ def listen():
                     image.write(buffer)
                     image.close()
                     x = requests.get(upload_url, headers=Headers)
-                    print("Status Code: " + x.status_code)
+                    print("Status Code: " + str(x.status_code))
                     print(x.json())
                     buffer = bytes()
                     lastTimeNoRead = None
