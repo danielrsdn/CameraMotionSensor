@@ -159,7 +159,8 @@ int main()
     }
 
     newAverageDistance = distance*0.70 + inst_distance*0.30;
-    std::string s = std::to_string(newAverageDistance);
+    double diff = absDifference(newAverageDistance, distance)/distance*100.0;
+    std::string s = std::to_string(diff);
     uint8_t* messageBuff = (uint8_t*) malloc(7*sizeof(uint8_t));
     convertCharToUInt8(s.c_str(),s.size(), messageBuff); 
     SerialUsb(messageBuff, s.size());
