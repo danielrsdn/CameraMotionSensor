@@ -122,16 +122,14 @@ int main()
  			//printf("OV2640 detected.END"); 
        		break;
  		}
-   }
+  }
 
-//   sleep_ms(10000);
-
-	 //Change to JPEG capture mode and initialize the OV5642 module
-   myCAM.set_format(JPEG);
-   myCAM.InitCAM();
-   myCAM.OV2640_set_JPEG_size(OV2640_320x240);
-   sleep_ms(1000);
-   myCAM.clear_fifo_flag();
+	//Change to JPEG capture mode and initialize the OV5642 module
+  myCAM.set_format(JPEG);
+  myCAM.InitCAM();
+  myCAM.OV2640_set_JPEG_size(OV2640_320x240);
+  sleep_ms(1000);
+  myCAM.clear_fifo_flag();
 
   uint8_t cameraCommand_last = 0;
   uint8_t is_header = 0;
@@ -139,7 +137,7 @@ int main()
   // Initialize sensor thread
   multicore_launch_core1(trigger);
 
-  while (1){
+  while (1) {
     while (!gpio_get(ECHO_PIN)) {
       continue;
     }
@@ -167,87 +165,40 @@ int main()
       // SerialUsb(messageBuff, s.size());
       // free(messageBuff);
       sleep_ms(500);
-   		SerialUsb(askToTakeImageBuff, 18);
-
-      while ((response = SerialUsbRead()) == -1) {}
-  
-		  // 'q' = quit
- 		  if (response == 113)
-		  {
-			  break;
-		  }
-		  // 'c' = capture
-		  else if (response == 99)
-		  {
-			  captureAndSendImage();		
-		  }
-		  else if (response == 105)
-		  {
-		
-		  }
+   		int res = imageBurst();
+      
+      if (res == 1) {
+        break;
+      }
     }
-
     distance = newAverageDistance;
     continue;
-    
-	//sleep_ms(100);
+  }
+  return 0;
+}
 
-    if (((((double) absDifference(newAverageDistance, distance))/distance)*100.0) > 50.0) {
-    	//printf("Average distance: %f\n", newAverageDistance);
-    	//uint8_t * doneBuff = (uint8_t*) malloc(4*sizeof(uint8_t));
-		//const char * done = "Hiii";
-		//convertCharToUInt8(done, 4, doneBuff);
-		//SerialUsb(doneBuff, 4);
-		//free(doneBuff);
-		//sleep_ms(500);
-      gpio_put(25, 1);
-      sleep_ms(5000);
-      gpio_put(25, 0);  
-      distance = newAverageDistance;
-      continue;  
-   		SerialUsb(askToTakeImageBuff, 18);
-   		
-   		while ((response = SerialUsbRead()) == -1) {
-   		
-   		}
-   		
-		  // 'q' = quit
- 		  if (response == 113)
-		  {
-		
-			  multicore_fifo_push_blocking(1);
-			  break;
-			
-		  }
-		
-		  // 'c' = capture
-		  else if (response == 99)
-		  {
-		
-			  multicore_fifo_push_blocking(2);
-			  captureAndSendImage();
-			  multicore_fifo_push_blocking(3);
-		
-		  }
-		
-		  // i = ignore
-		  else if (response == 105)
-		  {
-		
-			  // do nothing 
-		
-		  }
-      	
-      sleep_ms(5000);
-      gpio_put(25, 0);    
+int imageBurst() {
+  while (true) {
+    SerialUsb(askToTakeImageBuff, 18);
+    while ((response = SerialUsbRead()) == -1) {}
+
+    // 'q' == quit program, something is wrong and program needs to shut down 
+    if (response == 113) {
+      // quit
+      return 1;
     }
 
-    distance = newAverageDistance;
-    
-  }
+    // capture another image
+    else if (response == 99) {
+      // capture
+      captureAndSendImage();
+    }
 
-  return 0;
-  
+    // 's' == stop, either got satisfied image or no human detected, so stop image burst 
+    else if (response == 115) {
+      return 0;
+    }
+  }
 }
 
 double absDifference(double newAverageDistance, double distance)

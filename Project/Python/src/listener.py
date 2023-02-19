@@ -2,11 +2,13 @@ import serial
 import time
 import adafruit_board_toolkit.circuitpython_serial
 import sys
-import boto3
 import datetime
 import subprocess
 import os
 import requests
+from deepface import DeepFace
+from multiprocessing import Process, Queue
+import json
 
 DMESG_CMD = "/usr/bin/dmesg"
 TAIL_CMD = "/usr/bin/tail"
@@ -28,14 +30,119 @@ USB_DEVICE = DEV_DIR + "/ttyACM*"
 UF2_FILE_PATH = '''./Project/C/build/src/Main/Main.uf2'''
 
 Headers = {"session_id": "testkey"}
-upload_url = "https://ljgqi1zvt4.execute-api.us-west-2.amazonaws.com/v1/upload"
-notify_url = "https://ljgqi1zvt4.execute-api.us-west-2.amazonaws.com/v1/notify"
+UPLOAD_URL = "https://ljgqi1zvt4.execute-api.us-west-2.amazonaws.com/v1/upload"
+NOTIFY_URL = "https://ljgqi1zvt4.execute-api.us-west-2.amazonaws.com/v1/notify"
+
+
+class LambdaAPI:
+    @staticmethod
+    def uploadAndNotifyImage(image):
+        response = requests.get(UPLOAD_URL, headers=Headers)
+        if response.status_code == 200:
+            response = response.json()
+            if response['httpRequest'] == 'PUT':
+                with open(image, "rb") as i:
+                    imageData = i.read()
+                    response2 = requests.put(response['url'], data=imageData, headers=response['headers'])
+                    if (response2.status_code // 200) == 1:
+                        response3 = requests.put(NOTIFY_URL, data=json.dumps({'photoName': response['photoName']}), headers=Headers)
+                        if (response3.status_code // 200 == 1):
+                            print("Succesfully uploaded image and notified device owner(s)")
+
+
+class ImageAnalyzer:
+    @staticmethod
+    def detectFace(image, queue):
+        try:
+            analysis = DeepFace.analyze(img_path=image, actions=["age"])
+            queue.put(image)
+        except ValueError:
+            pass
+
+
+class ImageHandler:
+    def __init__ (self):
+        self.queue = Queue()
+    
+    def validateImage(self, image):
+        Process(target=ImageAnalyzer.detectFace, args=(image, self.queue))
+
+    def getValidatedImage(self):
+        try:
+            image = self.queue.get(block=False)
+            return image
+        except Queue.Empty:
+            return None
+    
+    def clearQueue(self):
+        self.queue = Queue()
+
+
+class Listener:
+    def __init__ (self, device, imageHandler):
+        self.device = device
+        self.buffer = bytes()
+        self.imageHandler = imageHandler
+    
+    def listen(self):
+        lastTimeNoRead = None
+        imageBurstStart = None
+        while True:
+            if self.device.in_waiting > 0:
+                lastTimeNoRead = time.time()
+                response = self.device.read(self.device.in_waiting)
+                print(response)
+
+                if bytes("Out of memory", 'utf-8') in response:
+                    lastTimeNoRead = None
+                    self.buffer = bytes() 
+                    continue
+
+                if bytes("Begin capturing images?", 'utf-8') in response:
+                    # write q for quit, write s for stop 
+                    imagePath =  self.imageHandler.getValidatedImage()
+                    if imageBurstStart is None:
+                        imageBurstStart = time.time()
+                    if (imagePath is None) and ((time.time() - imageBurstStart) < 5):
+                        self.device.write(bytes("c", 'utf-8'))
+                    elif (imagePath is None):
+                        self.device.write(bytes("s", 'utf-8'))
+                        imageBurstStart = None
+                    else:  
+                        self.device.write(bytes("s", 'utf-8'))
+                        self.imageHandler.clearQueue()
+                        imageBurstStart = None
+                        LambdaAPI.uploadAndNotifyImage(imagePath)
+
+                    lastTimeNoRead = None
+                    self.buffer = bytes() 
+                    continue
+
+                if bytes("done", 'utf-8') in response:
+                    response = response.split(bytes("done", 'utf-8'))[0]
+                    self.buffer = self.buffer + response
+                    print("Got new picture!")
+                    imageName = "/tmp/image_" + datetime.datetime.today().strftime("%d-%b-%Y-%H-%M-%S-%f") +  ".jpeg";
+                    image = open(imageName, "wb+")
+                    image.write(self.buffer)
+                    image.close()
+                    self.imageHandler.validateImage(imageName)
+                    lastTimeNoRead = None
+
+                self.buffer = self.buffer + response
+                
+            elif lastTimeNoRead is None:
+                continue
+            elif (time.time() - lastTimeNoRead) < 20:
+                continue
+            else:
+                break
 
 def kill(s):
     print(f'{sys.argv[0]}: {s}', file=sys.stderr)
     sys.exit(1)
 
-def listen():
+def start():
     comports = adafruit_board_toolkit.circuitpython_serial.data_comports()
     device_COM = None
     while device_COM is None:
@@ -53,59 +160,13 @@ def listen():
         #kill("No comports module found")
 
     device = serial.Serial(device_COM, baudrate=115200)
-    buffer = bytes()  
-    try:
-        print("Got here")
-        while True:
-            if device.in_waiting > 0:
-                lastTimeNoRead = time.time()
-                response = device.read(device.in_waiting)
-                print(response);
-                if bytes("Out of memory", 'utf-8') in response:
-                    lastTimeNoRead = None
-                    buffer = bytes() 
-                    continue
-                if bytes("Should take image?", 'utf-8') in response:
-                    capture = input("Capture image?: ")
-                    if (capture == 'y'):
-                        device.write(bytes("c", 'utf-8'))
-                        lastTimeNoRead = None
-                        buffer = bytes() 
-                        continue
-                    elif (capture == 'n'):
-                        device.write(bytes("i", 'utf-8'))
-                        lastTimeNoRead = None
-                        buffer = bytes() 
-                        continue
-                    elif (capture == 'q'):
-                        device.write(bytes("q", 'utf-8'))
-                        lastTimeNoRead = None
-                        buffer = bytes() 
-                        continue
-                if bytes("done", 'utf-8') in response:
-                    response = response.split(bytes("done", 'utf-8'))[0]
-                    buffer = buffer + response
-                    print("Got new picture!")
-                    imageName = "/tmp/image_" + datetime.datetime.today().strftime("%d-%b-%Y-%H-%M-%S-%f") +  ".jpeg";
-                    image = open(imageName, "wb+")
-                    image.write(buffer)
-                    image.close()
-                    x = requests.get(upload_url, headers=Headers)
-                    print("Status Code: " + str(x.status_code))
-                    print(x.json())
-                    buffer = bytes()
-                    lastTimeNoRead = None
-                buffer = buffer + response
-            elif lastTimeNoRead is None:
-                continue
-            elif (time.time() - lastTimeNoRead) < 20:
-                continue
-            else:
-                break
-    
-
+    imageHandler = ImageHandler()
+    listener = Listener(imageHandler)
+    try: 
+        listener.listen()
     finally:
         device.close()
+    
 
 def flash():
      #Create tmp directory
@@ -136,7 +197,7 @@ def flash():
 def main():
      # Flash UF2 on PICO
      flash()
-     listen()
+     start()
 
 
 if __name__ == "__main__":
