@@ -156,10 +156,9 @@ def start():
             time.sleep(1)
 
     print("detected device_COM: " + device_COM)
-    lastTimeNoRead = None
-    s3 = boto3.resource('s3')
-    #if not comports:
-        #kill("No comports module found")
+
+    if not comports:
+        kill("No comports module found")
 
     device = serial.Serial(device_COM, baudrate=115200)
     imageHandler = ImageHandler()
