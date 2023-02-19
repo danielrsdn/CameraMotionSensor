@@ -157,8 +157,8 @@ def start():
 
     print("detected device_COM: " + device_COM)
 
-    if not comports:
-        kill("No comports module found")
+    #if not comports:
+        #kill("No comports module found")
 
     device = serial.Serial(device_COM, baudrate=115200)
     imageHandler = ImageHandler()
