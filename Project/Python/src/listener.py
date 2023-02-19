@@ -6,7 +6,7 @@ import datetime
 import subprocess
 import os
 import requests
-from deepface import DeepFace
+import face_recognition
 from multiprocessing import Process, Queue
 import json
 
@@ -52,13 +52,11 @@ class LambdaAPI:
 
 class ImageAnalyzer:
     @staticmethod
-    def detectFace(image, queue):
-        try:
-            analysis = DeepFace.analyze(img_path=image, actions=["age"])
-            queue.put(image)
-        except ValueError:
-            pass
-
+    def detectFace(imagePath, queue):
+        image = face_recognition.load_image_file(imagePath)
+        face_locations = face_recognition.face_locations(image)
+        if len(face_locations) > 0:
+            queue.put(imagePath)
 
 class ImageHandler:
     def __init__ (self):
