@@ -162,7 +162,7 @@ def start():
 
     device = serial.Serial(device_COM, baudrate=115200)
     imageHandler = ImageHandler()
-    listener = Listener(imageHandler)
+    listener = Listener(device, imageHandler)
     try: 
         listener.listen()
     finally:
