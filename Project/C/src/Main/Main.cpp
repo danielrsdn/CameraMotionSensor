@@ -23,7 +23,7 @@ double absDifference(double newAverageDistance, double distance);
 void trigger(void);
 int SerialUSBAvailable(void);
 int SerialUsbRead(void);
-int imageBurst();
+int imageBurst(void);
 uint8_t read_fifo_burst(ArduCAM myCAM);
 #define BMPIMAGEOFFSET 66
 uint8_t bmp_header[BMPIMAGEOFFSET] =
