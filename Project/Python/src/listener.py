@@ -91,7 +91,6 @@ class Listener:
             if self.device.in_waiting > 0:
                 lastTimeNoRead = time.time()
                 response = self.device.read(self.device.in_waiting)
-                print(response)
 
                 if bytes("Out of memory", 'utf-8') in response:
                     lastTimeNoRead = None
@@ -99,16 +98,20 @@ class Listener:
                     continue
 
                 if bytes("Begin capturing images?", 'utf-8') in response:
+                    print(response)
                     # write q for quit, write s for stop 
                     imagePath =  self.imageHandler.getValidatedImage()
                     if imageBurstStart is None:
                         imageBurstStart = time.time()
                     if (imagePath is None) and ((time.time() - imageBurstStart) < 5):
+                        print("no human face detected yet, keep capturing: c")
                         self.device.write(bytes("c", 'utf-8'))
                     elif (imagePath is None):
+                        print("no human face detected after 5 seconds: s")
                         self.device.write(bytes("s", 'utf-8'))
                         imageBurstStart = None
                     else:  
+                        print("detected Face: s")
                         self.device.write(bytes("s", 'utf-8'))
                         self.imageHandler.clearQueue()
                         imageBurstStart = None
@@ -119,6 +122,7 @@ class Listener:
                     continue
 
                 if bytes("done", 'utf-8') in response:
+                    print("Read image from Pico")
                     response = response.split(bytes("done", 'utf-8'))[0]
                     self.buffer = self.buffer + response
                     print("Got new picture!")
