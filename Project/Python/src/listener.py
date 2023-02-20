@@ -7,7 +7,7 @@ import subprocess
 import os
 import requests
 import face_recognition
-from multiprocessing import Process, Lock
+from multiprocessing import Process, Queue
 from queue import Empty
 import json
 
@@ -58,38 +58,26 @@ class LambdaAPI:
 
 class ImageAnalyzer:
     @staticmethod
-    def detectFace(imagePath, lock, imageHandler):
+    def detectFace(imagePath, queue):
         print("Detecting face for  " + imagePath)
         image = face_recognition.load_image_file(imagePath)
         face_locations = face_recognition.face_locations(image)
         if len(face_locations) > 0:
             print("Detected face for  " + imagePath)
-            upload = False
-            lock.acquire()
-            try:
-                if imageHandler.count == 0:
-                    upload = True
-                    imageHandler.count = imageHandler.count + 1
-            finally:
-                lock.release()
-            
-            if upload == True:
-                LambdaAPI.uploadAndNotifyImage(imagePath)
+            queue.put(imagePath)
+    
+    @staticmethod
+    def waitForFaceDetection(queue):
+        imagePath = queue.get()
+        LambdaAPI.uploadAndNotifyImage(imagePath)
 
-class ImageHandler:
-    def __init__ (self):
-        self.lock = Lock()
-        self.count = 0
+class ImageHandler:    
+    def validateImage(self, image, queue):
+        Process(target=ImageAnalyzer.detectFace, args=(image, queue,)).start()
+
+    def waitForValidation(queue):
+        Process(target=ImageAnalyzer.waitForFaceDetection, args=(queue,)).start()
     
-    def validateImage(self, image):
-        Process(target=ImageAnalyzer.detectFace, args=(image, self.lock, self)).start()
-    
-    def reset(self):
-        self.lock.acquire()
-        try:
-            self.count = 0
-        finally:
-            self.lock.release()
 
 class Listener:
     def __init__ (self, device, imageHandler, burstSize):
@@ -99,7 +87,7 @@ class Listener:
         self.lastTimeNoRead = None
         self.burstSize = burstSize
     
-    def receiveAndHandleImage(self):
+    def receiveAndHandleImage(self, queue):
         self.lastTimeNoRead = None
         self.buffer = bytes()
 
@@ -122,7 +110,7 @@ class Listener:
                     image = open(imageName, "wb+")
                     image.write(self.buffer)
                     image.close()
-                    self.imageHandler.validateImage(imageName)
+                    self.imageHandler.validateImage(imageName, queue)
                     self.lastTimeNoRead = None
                     break
                 
@@ -148,9 +136,10 @@ class Listener:
 
                 if bytes("Should take image?", 'utf-8') in response:
                     self.device.write(bytes([self.burstSize]))
-                    #self.imageHandler.reset()
+                    queue = Queue()
                     for i in range(0, self.burstSize):
-                        self.receiveAndHandleImage()
+                        self.receiveAndHandleImage(queue)
+                    self.imageHandler.waitForValidation(queue)
                 
             elif self.lastTimeNoRead is None:
                 continue
