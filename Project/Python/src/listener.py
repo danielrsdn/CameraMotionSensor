@@ -75,7 +75,7 @@ class ImageHandler:
     def validateImage(self, image, queue):
         Process(target=ImageAnalyzer.detectFace, args=(image, queue,)).start()
 
-    def waitForValidation(queue):
+    def waitForValidation(self, queue):
         Process(target=ImageAnalyzer.waitForFaceDetection, args=(queue,)).start()
     
 
