@@ -169,7 +169,7 @@ def start():
     #if not comports:
         #kill("No comports module found")
 
-    device = serial.Serial(device_COM, baudrate=921600)
+    device = serial.Serial(device_COM, baudrate=115200)
     imageHandler = ImageHandler()
     listener = Listener(device, imageHandler, 15)
     try: 
