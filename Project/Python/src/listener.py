@@ -8,7 +8,7 @@ import os
 import requests
 import face_recognition
 from multiprocessing import Process, Queue
-from Queue import Empty
+from queue import Empty
 import json
 
 DMESG_CMD = "/usr/bin/dmesg"
