@@ -95,7 +95,7 @@ class Listener:
                     self.buffer = bytes() 
                     continue
 
-                if bytes("Begin capturing images?", 'utf-8') in response:
+                if bytes("Should take image?", 'utf-8') in response:
                     print(response)
                     # write q for quit, write s for stop 
                     imagePath =  self.imageHandler.getValidatedImage()
