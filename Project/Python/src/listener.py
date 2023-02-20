@@ -46,10 +46,10 @@ class LambdaAPI:
                     imageData = i.read()
                     Headers2 = {'host': json.dumps(response['headers']['host'])}
                     response2 = requests.put(response['url'], data=imageData, headers=Headers2)
-                    print("Attempt to upload image to s3: "  + response2)
+                    print("Attempt to upload image to s3: "  + str(response2))
                     if (response2.status_code // 200) == 1:
                         response3 = requests.put(NOTIFY_URL, data=json.dumps({'photoName': response['photoName']}), headers=Headers)
-                        print("Attempt to notify image: "  + response3)
+                        print("Attempt to notify image: "  + str(response3))
                         if (response3.status_code // 200 == 1):
                             print("Succesfully uploaded image and notified device owner(s)")
 
