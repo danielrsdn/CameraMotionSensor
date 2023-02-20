@@ -44,7 +44,9 @@ class LambdaAPI:
             if response['httpRequest'] == 'PUT':
                 with open(image, "rb") as i:
                     imageData = i.read()
-                    Headers2 = {'host': json.dumps(response['headers']['host'])}
+                    Headers2 = {}
+                    for k in response['headers']:
+                        Headers2[k] = response['headers'][k][0]
                     response2 = requests.put(response['url'], data=imageData, headers=Headers2)
                     print("Attempt to upload image to s3: "  + str(response2))
                     if (response2.status_code // 200) == 1:
