@@ -65,6 +65,7 @@ class ImageAnalyzer:
         if len(face_locations) > 0:
             print("Detected face for  " + imagePath)
             queue.put(imagePath)
+            queue.close()
     
     @staticmethod
     def waitForFaceDetection(queue):
