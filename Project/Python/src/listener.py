@@ -44,7 +44,8 @@ class LambdaAPI:
             if response['httpRequest'] == 'PUT':
                 with open(image, "rb") as i:
                     imageData = i.read()
-                    response2 = requests.put(response['url'], data=imageData, headers=response['headers'])
+                    Headers2 = {'host': json.dumps(response['headers']['host'])}
+                    response2 = requests.put(response['url'], data=imageData, headers=Headers2)
                     if (response2.status_code // 200) == 1:
                         response3 = requests.put(NOTIFY_URL, data=json.dumps({'photoName': response['photoName']}), headers=Headers)
                         if (response3.status_code // 200 == 1):
