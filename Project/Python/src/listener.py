@@ -7,7 +7,7 @@ import subprocess
 import os
 import requests
 import face_recognition
-from multiprocessing import Process, Queue
+from multiprocessing import Process, LifoQueue
 from queue import Empty
 import json
 
@@ -61,7 +61,7 @@ class ImageAnalyzer:
 
 class ImageHandler:
     def __init__ (self):
-        self.queue = Queue()
+        self.queue = LifoQueue()
     
     def validateImage(self, image):
         Process(target=ImageAnalyzer.detectFace, args=(image, self.queue))
@@ -74,7 +74,7 @@ class ImageHandler:
             return None
     
     def clearQueue(self):
-        self.queue = Queue()
+        self.queue = LifoQueue()
 
 
 class Listener:
