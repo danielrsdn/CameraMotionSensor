@@ -7,10 +7,28 @@ This repository is used to build an executable file that runs on a Raspberry Pi 
 - Arducam Mini 2MP Plus
 - Elegoo HC-SR04 Ultrasonic Module Distance Sensor
 - Bread board 
-- Jumperwires 
-- Breadboard
+- Male-Male Jumperwires 
 - USB
 ## Configuration
+### Configure Arducam Mini 2MP Plus to Pico:
+| Arducam | Pico |   
+| --------|:----:| 
+| CS      | GP5  | 
+| MOSI    | GP3  |   
+| MISO    | GP4  |    
+| SCK     | GP2  |    
+| GND     | GND  |  
+| VCC     | 3.3V |  
+| SDA     | GP8  |
+| SCL     | GP9  |
+
+### Configure Elegoo HC-SR04 Ultrasonic Module Distance Sensor to Pico:
+| Sensor  | Pico |   
+| --------|:----:| 
+| VCC     | VBUS | 
+| TRIG    | GP16 |   
+| ECHO    | GP15 |    
+| GND     | GND  |    
 
 # Build executable file
 ## Install dependencies 
