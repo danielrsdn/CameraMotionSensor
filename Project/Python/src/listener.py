@@ -57,9 +57,11 @@ class LambdaAPI:
 class ImageAnalyzer:
     @staticmethod
     def detectFace(imagePath, lock, imageHandler):
+        print("Detecting face for  " + imagePath)
         image = face_recognition.load_image_file(imagePath)
         face_locations = face_recognition.face_locations(image)
         if len(face_locations) > 0:
+            print("Detected face for  " + imagePath)
             upload = False
             lock.acquire()
             try:
