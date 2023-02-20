@@ -98,16 +98,16 @@ class Listener:
                     continue
 
                 if bytes("Should take image?", 'utf-8') in response:
-                    print(response)
+                    #print(response)
                     # write q for quit, write s for stop 
                     imagePath =  self.imageHandler.getValidatedImage()
                     if imageBurstStart is None:
                         imageBurstStart = time.time()
-                    if (imagePath is None) and ((time.time() - imageBurstStart) < 5):
-                        print("no human face detected yet, keep capturing: c")
+                    if (imagePath is None) and ((time.time() - imageBurstStart) < 1):
+                        #print("no human face detected yet, keep capturing: c")
                         self.device.write(bytes("c", 'utf-8'))
                     elif (imagePath is None):
-                        print("no human face detected after 5 seconds: s")
+                        #print("no human face detected after 5 seconds: s")
                         self.device.write(bytes("s", 'utf-8'))
                         imageBurstStart = None
                     else:  
@@ -122,10 +122,10 @@ class Listener:
                     continue
 
                 if bytes("done", 'utf-8') in response:
-                    print("Read image from Pico")
+                    #print("Read image from Pico")
                     response = response.split(bytes("done", 'utf-8'))[0]
                     self.buffer = self.buffer + response
-                    print("Got new picture!")
+                    #print("Got new picture!")
                     imageName = "/tmp/image_" + datetime.datetime.today().strftime("%d-%b-%Y-%H-%M-%S-%f") +  ".jpeg";
                     image = open(imageName, "wb+")
                     image.write(self.buffer)
