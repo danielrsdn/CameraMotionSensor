@@ -1,15 +1,16 @@
 # CameraMotionSensor 
-This repository is used to build an executable file that runs on a Raspberry Pi Pico to operate the photo-capturing motion sensor device. The source code in this repo uses the ArduCAM/RPI-Pico-Cam header files from https://github.com/ArduCAM/RPI-Pico-Cam
-
+This repository is used to build and run an executable file that runs on a Raspberry Pi Pico to operate the photo-capturing motion sensor device. It also sets up the Serial USB listener on the host machine to receive photos from the Pico device and communicate with services on the Cloud. The source code in this repo uses the ArduCAM/RPI-Pico-Cam header files from https://github.com/ArduCAM/RPI-Pico-Cam
+ 
 # Device Setup
 ## Materials needed
 - Raspberry Pi Pico
 - Arducam Mini 2MP Plus
 - Elegoo HC-SR04 Ultrasonic Module Distance Sensor
 - Bread board 
-- Male-Male Jumperwires 
+- Wires
 - USB
-## Configuration
+
+## Wiring 
 ### Configure Arducam Mini 2MP Plus to Pico:
 | Arducam | Pico |   
 | --------|:----:| 
@@ -57,27 +58,53 @@ export PICO_SDK_PATH=$PWD/pico-sdk
 ## Compile and build executable
 
 ```bash
-cd  Project/C
-mkdir build
-cd build
-cmake ..
-make 
+(cd  Project/C && mkdir build)
+(cd Project/C/build && cmake ..)
+(cd Project/C/build && make)
 ```
-# Run executable on Raspberry Pi Pico
-Connect the Pico device to your computer or machine running the local server. If you have a monitor and keyboard setup, you can drag generated .uf2 file in ```build``` into the board. You can also do this manually:
+
+# Run serial listener on host machine and executable on Raspberry Pi Pico
+
+## Requirements
+This code requires the following to run:
+
+  * [python3][python] 3.7+
+  * [pip3][pip] 23.0+
+
+
+[python]: https://www.python.org/downloads/
+[pip]: https://pypi.org/project/pip/
+
+Install the necessary python dependencies:
+
+```bash
+pip install -r Project/Python/requirements.txt
 ```
+## Start Up
+Connect the Pico device to your linux computer or machine. Then run the following command to reset your Pico
+
+```bash
+sudo ./bootselBoot b
+```
+This will reset your Pico so you can flash a new executable file on it. You can verify the successs of the above command by:
+
+```bash
 $ dmesg | tail
 [ 371.973555] sd 0:0:0:0: [sda] Attached SCSI removable disk
-$ sudo mkdir -p /mnt/pico
-sudo mount /dev/sda1 /mnt/pico
+```
+Now you can finally start the listener and executable with the command:
+
+```bash
+sudo Python3 Project/Python/src/listener.py
 ```
 
-If you can see files in /mnt/pico then the USB Mass Storage Device has been mounted correctly:
+This will set up the listening program on the host machine while running the executable on the Pico. The listening program will receive photos from the Pico upon motion detection, and subsequently store the photos on the cloud as well as trigger the notification of the device owner. 
 
+## Termination
+You can terminate the listener program on the host machine through ```CTRL^Z``` or ```CTRL^C```. To terminate the program on the Pico device and reset it, run once again: 
+
+```bash
+sudo ./bootselBoot b
 ```
-$ ls /mnt/pico/
-INDEX.HTM INFO_UF2.TXT
-Copy your Main.uf2 onto RP2040:
-sudo cp Main.uf2 /mnt/pico
-sudo sync
-```
+
+You can later re-run your program by following the steps in **Start Up**
