@@ -31,7 +31,7 @@ This repository is used to build and run an executable file that runs on a Raspb
 | ECHO    | GP15 |    
 | GND     | GND  |    
 
-# Build executable file
+# Build 
 ## Install dependencies 
 These instructions are limited to linux-based systems only. Please see https://datasheets.raspberrypi.com/pico/raspberry-pi-pico-c-sdk.pdf for instructions on other platforms. 
 
@@ -63,7 +63,7 @@ export PICO_SDK_PATH=$PWD/pico-sdk
 (cd Project/C/build && make)
 ```
 
-# Run serial listener on host machine and executable on Raspberry Pi Pico
+# Run 
 
 ## Requirements
 This code requires the following to run:
