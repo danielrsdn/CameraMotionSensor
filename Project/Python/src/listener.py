@@ -75,7 +75,7 @@ class ImageHandler:
         self.count = 0
     
     def validateImage(self, image):
-        Process(target=ImageAnalyzer.detectFace, args=(image, self.lock, self))
+        Process(target=ImageAnalyzer.detectFace, args=(image, self.lock, self)).start()
     
     def reset(self):
         self.lock.acquire()
