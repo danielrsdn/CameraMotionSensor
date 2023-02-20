@@ -23,7 +23,7 @@ double absDifference(double newAverageDistance, double distance);
 void trigger(void);
 int SerialUSBAvailable(void);
 int SerialUsbRead(void);
-int imageBurst(void);
+void imageBurst(void);
 uint8_t read_fifo_burst(ArduCAM myCAM);
 #define BMPIMAGEOFFSET 66
 uint8_t bmp_header[BMPIMAGEOFFSET] =
@@ -165,12 +165,7 @@ int main()
       // convertCharToUInt8(s.c_str(),s.size(), messageBuff); 
       // SerialUsb(messageBuff, s.size());
       // free(messageBuff);
-      sleep_ms(500);
-   		int res = imageBurst();
-      
-      if (res == 1) {
-        break;
-      }
+   		imageBurst();
     }
     distance = newAverageDistance;
     continue;
@@ -178,27 +173,11 @@ int main()
   return 0;
 }
 
-int imageBurst() {
-  while (true) {
-    SerialUsb(askToTakeImageBuff, 18);
-    while ((response = SerialUsbRead()) == -1) {}
-
-    // 'q' == quit program, something is wrong and program needs to shut down 
-    if (response == 113) {
-      // quit
-      return 1;
-    }
-
-    // capture another image
-    else if (response == 99) {
-      // capture
+void imageBurst() {
+  SerialUsb(askToTakeImageBuff, 18);
+  while ((response = SerialUsbRead()) == -1) {}
+  for (int i = 0; i < response; i++) {
       captureAndSendImage();
-    }
-
-    // 's' == stop, either got satisfied image or no human detected, so stop image burst 
-    else if (response == 115) {
-      return 0;
-    }
   }
 }
 

@@ -7,7 +7,7 @@ import subprocess
 import os
 import requests
 import face_recognition
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Lock
 from queue import Empty
 import json
 
@@ -53,72 +53,59 @@ class LambdaAPI:
 
 class ImageAnalyzer:
     @staticmethod
-    def detectFace(imagePath, queue):
+    def detectFace(imagePath, lock, imageHandler):
         image = face_recognition.load_image_file(imagePath)
         face_locations = face_recognition.face_locations(image)
         if len(face_locations) > 0:
-            queue.put(imagePath)
-        queue.close()
+            upload = False
+            lock.acquire()
+            try:
+                if imageHandler.count == 0:
+                    upload = True
+                    imageHandler.count = imageHandler.count + 1
+            finally:
+                lock.release()
+            
+            if upload == True:
+                LambdaAPI.uploadAndNotifyImage(imagePath)
 
 class ImageHandler:
     def __init__ (self):
-        self.queue = Queue()
+        self.lock = Lock()
+        self.count = 0
     
     def validateImage(self, image):
-        Process(target=ImageAnalyzer.detectFace, args=(image, self.queue))
-
-    def getValidatedImage(self):
-        try:
-            image = self.queue.get(block=False)
-            return image
-        except Empty:
-            return None
+        Process(target=ImageAnalyzer.detectFace, args=(image, self.lock, self))
     
-    def clearQueue(self):
-        self.queue = Queue()
-
+    def reset(self):
+        self.lock.acquire()
+        try:
+            self.count = 0
+        finally:
+            self.lock.release()
 
 class Listener:
-    def __init__ (self, device, imageHandler):
+    def __init__ (self, device, imageHandler, burstSize):
         self.device = device
         self.buffer = bytes()
         self.imageHandler = imageHandler
+        self.lastTimeNoRead = None
+        self.burstSize = burstSize
     
-    def listen(self):
-        lastTimeNoRead = None
-        imageBurstStart = 0
+    def receiveAndHandleImage(self):
+        self.lastTimeNoRead = None
+        self.buffer = bytes()
+
         while True:
             if self.device.in_waiting > 0:
-                lastTimeNoRead = time.time()
+                self.lastTimeNoRead = time.time()
                 response = self.device.read(self.device.in_waiting)
-
+            
                 if bytes("Out of memory", 'utf-8') in response:
-                    lastTimeNoRead = None
+                    self.lastTimeNoRead = None
                     self.buffer = bytes() 
-                    continue
-
-                if bytes("Should take image?", 'utf-8') in response:
-                    #print(response)
-                    # write q for quit, write s for stop 
-                    imagePath =  self.imageHandler.getValidatedImage()
-                    if (imagePath is None) and (imageBurstStart < 30):
-                        #print("no human face detected yet, keep capturing: c")
-                        self.device.write(bytes("c", 'utf-8'))
-                    elif (imagePath is None):
-                        #print("no human face detected after 5 seconds: s")
-                        self.device.write(bytes("s", 'utf-8'))
-                        imageBurstStart = 0
-                    else:  
-                        print("detected Face: s")
-                        self.device.write(bytes("s", 'utf-8'))
-                        self.imageHandler.clearQueue()
-                        imageBurstStart = 0
-                        LambdaAPI.uploadAndNotifyImage(imagePath)
-
-                    lastTimeNoRead = None
-                    self.buffer = bytes() 
-                    continue
-
+                    break
+                
                 if bytes("done", 'utf-8') in response:
                     #print("Read image from Pico")
                     response = response.split(bytes("done", 'utf-8'))[0]
@@ -130,13 +117,38 @@ class Listener:
                     image.close()
                     imageBurstStart = imageBurstStart + 1
                     self.imageHandler.validateImage(imageName)
-                    lastTimeNoRead = None
-
-                self.buffer = self.buffer + response
+                    self.lastTimeNoRead = None
+                    break
                 
-            elif lastTimeNoRead is None:
+                self.buffer = self.buffer + response
+        
+            elif self.lastTimeNoRead is None:
                 continue
-            elif (time.time() - lastTimeNoRead) < 20:
+            elif (time.time() - self.lastTimeNoRead) < 20:
+                continue
+            else:
+                break
+
+
+    def listen(self):
+        while True:
+            if self.device.in_waiting > 0:
+                self.lastTimeNoRead = time.time()
+                response = self.device.read(self.device.in_waiting)
+
+                if bytes("Out of memory", 'utf-8') in response:
+                    self.lastTimeNoRead = None
+                    self.buffer = bytes() 
+
+                if bytes("Should take image?", 'utf-8') in response:
+                    self.device.write(bytes([self.burstSize]))
+                    self.imageHandler.reset()
+                    for i in range(0, self.burstSize):
+                        self.receiveAndHandleImage()
+                
+            elif self.lastTimeNoRead is None:
+                continue
+            elif (time.time() - self.lastTimeNoRead) < 20:
                 continue
             else:
                 break
@@ -163,7 +175,7 @@ def start():
 
     device = serial.Serial(device_COM, baudrate=115200)
     imageHandler = ImageHandler()
-    listener = Listener(device, imageHandler)
+    listener = Listener(device, imageHandler, 30)
     try: 
         listener.listen()
     finally:
