@@ -65,7 +65,7 @@ class ImageAnalyzer:
         if len(face_locations) > 0:
             print("Detected face for  " + imagePath)
             queue.put(imagePath)
-            queue.close()
+        queue.close()
     
     @staticmethod
     def waitForFaceDetection(queue):
@@ -171,7 +171,7 @@ def start():
 
     device = serial.Serial(device_COM, baudrate=115200)
     imageHandler = ImageHandler()
-    listener = Listener(device, imageHandler, 30)
+    listener = Listener(device, imageHandler, 15)
     try: 
         listener.listen()
     finally:
