@@ -86,7 +86,7 @@ class Listener:
     
     def listen(self):
         lastTimeNoRead = None
-        imageBurstStart = None
+        imageBurstStart = 0
         while True:
             if self.device.in_waiting > 0:
                 lastTimeNoRead = time.time()
@@ -101,20 +101,18 @@ class Listener:
                     #print(response)
                     # write q for quit, write s for stop 
                     imagePath =  self.imageHandler.getValidatedImage()
-                    if imageBurstStart is None:
-                        imageBurstStart = time.time()
-                    if (imagePath is None) and ((time.time() - imageBurstStart) < 1):
+                    if (imagePath is None) and (imageBurstStart < 30):
                         #print("no human face detected yet, keep capturing: c")
                         self.device.write(bytes("c", 'utf-8'))
                     elif (imagePath is None):
                         #print("no human face detected after 5 seconds: s")
                         self.device.write(bytes("s", 'utf-8'))
-                        imageBurstStart = None
+                        imageBurstStart = 0
                     else:  
                         print("detected Face: s")
                         self.device.write(bytes("s", 'utf-8'))
                         self.imageHandler.clearQueue()
-                        imageBurstStart = None
+                        imageBurstStart = 0
                         LambdaAPI.uploadAndNotifyImage(imagePath)
 
                     lastTimeNoRead = None
@@ -130,6 +128,7 @@ class Listener:
                     image = open(imageName, "wb+")
                     image.write(self.buffer)
                     image.close()
+                    imageBurstStart = imageBurstStart + 1
                     self.imageHandler.validateImage(imageName)
                     lastTimeNoRead = None
 
