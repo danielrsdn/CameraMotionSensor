@@ -58,26 +58,32 @@ class LambdaAPI:
 
 class ImageAnalyzer:
     @staticmethod
-    def detectFace(imagePath, queue):
-        print("Detecting face for  " + imagePath)
-        image = face_recognition.load_image_file(imagePath)
-        face_locations = face_recognition.face_locations(image)
-        if len(face_locations) > 0:
-            print("Detected face for  " + imagePath)
-            queue.put(imagePath)
-        queue.close()
-    
-    @staticmethod
-    def waitForFaceDetection(queue):
-        imagePath = queue.get()
-        LambdaAPI.uploadAndNotifyImage(imagePath)
+    def detectFaces(queue):
+        map = {}
+        while True:
+            (imagePath, burst) = queue.get()
+            if burst not in map:
+                map[burst] = False
+            if map[burst] == False:
+                print("Detecting face for  " + imagePath)
+                image = face_recognition.load_image_file(imagePath)
+                face_locations = face_recognition.face_locations(image)
+                if len(face_locations) > 0:
+                    print("Detected face for  " + imagePath)
+                    map[burst] = True
+                    LambdaAPI.uploadAndNotifyImage(imagePath)
+
 
 class ImageHandler:    
-    def validateImage(self, image, queue):
-        Process(target=ImageAnalyzer.detectFace, args=(image, queue,)).start()
+    def __init__(self):
+        self.queue = Queue()
+        self.startValidator()
 
-    def waitForValidation(self, queue):
-        Process(target=ImageAnalyzer.waitForFaceDetection, args=(queue,)).start()
+    def validateImage(self, image, burst):
+        self.queue.put((image, burst))
+
+    def startValidator(self):
+        Process(target=ImageAnalyzer.detectFaces, args=(self.queue,)).start()
     
 
 class Listener:
@@ -88,7 +94,7 @@ class Listener:
         self.lastTimeNoRead = None
         self.burstSize = burstSize
     
-    def receiveAndHandleImage(self, queue):
+    def receiveAndHandleImage(self, burst):
         self.lastTimeNoRead = None
         self.buffer = bytes()
 
@@ -111,7 +117,7 @@ class Listener:
                     image = open(imageName, "wb+")
                     image.write(self.buffer)
                     image.close()
-                    self.imageHandler.validateImage(imageName, queue)
+                    self.imageHandler.validateImage(imageName, burst)
                     self.lastTimeNoRead = None
                     break
                 
@@ -137,10 +143,9 @@ class Listener:
 
                 if bytes("Should take image?", 'utf-8') in response:
                     self.device.write(bytes([self.burstSize]))
-                    queue = Queue()
+                    burst = time.time()
                     for i in range(0, self.burstSize):
-                        self.receiveAndHandleImage(queue)
-                    self.imageHandler.waitForValidation(queue)
+                        self.receiveAndHandleImage(burst)
                 
             elif self.lastTimeNoRead is None:
                 continue
