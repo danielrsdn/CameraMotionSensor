@@ -141,7 +141,7 @@ class Listener:
 
                 if bytes("Should take image?", 'utf-8') in response:
                     self.device.write(bytes([self.burstSize]))
-                    self.imageHandler.reset()
+                    #self.imageHandler.reset()
                     for i in range(0, self.burstSize):
                         self.receiveAndHandleImage()
                 
