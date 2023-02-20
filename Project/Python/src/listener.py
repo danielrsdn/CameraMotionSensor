@@ -8,6 +8,7 @@ import os
 import requests
 import face_recognition
 from multiprocessing import Process, Queue
+from Queue import Empty
 import json
 
 DMESG_CMD = "/usr/bin/dmesg"
@@ -69,7 +70,7 @@ class ImageHandler:
         try:
             image = self.queue.get(block=False)
             return image
-        except Queue.Empty:
+        except Empty:
             return None
     
     def clearQueue(self):
