@@ -1,0 +1,3 @@
+adafruit_board_toolkit.circuitpython_serial
+face_recognition
+pyserial
