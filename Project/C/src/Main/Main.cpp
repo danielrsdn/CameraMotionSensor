@@ -128,7 +128,7 @@ int main()
 	//Change to JPEG capture mode and initialize the OV5642 module
   myCAM.set_format(JPEG);
   myCAM.InitCAM();
-  myCAM.OV2640_set_JPEG_size(OV2640_320x240);
+  myCAM.OV2640_set_JPEG_size(OV2640_1600x1200);
   sleep_ms(1000);
   myCAM.clear_fifo_flag();
 
