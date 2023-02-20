@@ -115,7 +115,6 @@ class Listener:
                     image = open(imageName, "wb+")
                     image.write(self.buffer)
                     image.close()
-                    imageBurstStart = imageBurstStart + 1
                     self.imageHandler.validateImage(imageName)
                     self.lastTimeNoRead = None
                     break
